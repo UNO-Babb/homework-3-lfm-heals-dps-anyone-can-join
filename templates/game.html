@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Adventure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            margin: 20px;
+        }
+        .main {
+            flex: 3;
+            margin-right: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(20, 50px);
+            grid-gap: 5px;
+        }
+        .tile {
+            width: 50px;
+            height: 50px;
+            border: 1px solid black;
+            text-align: center;
+            line-height: 50px;
+        }
+        .player1 {
+            background-color: blue;
+            color: white;
+        }
+        .player2 {
+            background-color: red;
+            color: white;
+        }
+        .treasure {
+            background-color: green;
+            color: white;
+        }
+        .trap {
+            background-color: orange;
+            color: white;
+        }
+        .hidden_treasure, .hidden_trap {
+            background-color: lightgray;
+            color: black;
+        }
+        .stats {
+            flex: 1;
+            border: 1px solid black;
+            padding: 10px;
+        }
+        .log {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid black;
+            padding: 10px;
+        }
+        .game-over {
+            font-size: 20px;
+            color: red;
+            font-weight: bold;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .disabled {
+            background-color: grey;
+            color: white;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h1>Mystic Adventure</h1>
+        {% if game_state["game_over"] %}
+        <p class="game-over">
+            {% if game_state["winner"] %}
+            Congratulations, {{ game_state["winner"] }}! You win!
+            {% else %}
+            Game over. No winner this time.
+            {% endif %}
+        </p>
+        {% else %}
+        <p><strong>Current Turn:</strong> {{ current_player }}</p>
+        {% endif %}
+
+        <div class="board">
+            {% for i in range(1, 101) %}
+            <div class="tile 
+                {% if i == game_state['positions']['Player 1'] %}player1
+                {% elif i == game_state['positions']['Player 2'] %}player2
+                {% elif game_state['tile_states'].get(i) == 'treasure' %}treasure
+                {% elif game_state['tile_states'].get(i) == 'trap' %}trap
+                {% elif game_state['tile_states'].get(i) == 'hidden_treasure' %}hidden_treasure
+                {% elif game_state['tile_states'].get(i) == 'hidden_trap' %}hidden_trap
+                {% endif %}">
+                {% if i == game_state["positions"]["Player 1"] %}
+                P1
+                {% elif i == game_state["positions"]["Player 2"] %}
+                P2
+                {% else %}
+                {{ i }}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="controls">
+            <form method="POST" action="/roll/Player 1">
+                <button class="button {% if current_player != 'Player 1' %}disabled{% endif %}" {% if current_player != 'Player 1' %}disabled{% endif %}>
+                    Player 1 Roll
+                </button>
+            </form>
+            <form method="POST" action="/roll/Player 2">
+                <button class="button {% if current_player != 'Player 2' %}disabled{% endif %}" {% if current_player != 'Player 2' %}disabled{% endif %}>
+                    Player 2 Roll
+                </button>
+            </form>
+        </div>
+
+        <div class="log">
+            <h2>Event Log</h2>
+            {% for entry in game_state["log"] %}
+            <p>{{ entry }}</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="stats">
+        <h2>Player Stats</h2>
+        <p><strong>Player:</strong> {{ current_player }}</p>
+        <p><strong>Health:</strong> {{ current_health }}</p>
+        <p><strong>Treasures:</strong> {{ current_treasures }}</p>
+
+        {% if game_state["game_over"] %}
+        <form method="POST" action="/reset">
+            <button class="button">Reset Game</button>
+        </form>
+        {% endif %}
+    </div>
+</body>
+</html>
